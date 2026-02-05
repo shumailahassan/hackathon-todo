@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir \".specify/templates/phr-template.prompt.md\" \".specify/templates/\" \"templates/phr-template.prompt.md\" \"templates/\" \"history/prompts/\" \".specify/\")",
+      "Bash(git fetch --all --prune)",
+      "Bash(powershell -ExecutionPolicy Bypass -File \".specify/scripts/powershell/create-new-feature.ps1\" -Json -Number 1 -ShortName \"web-app-conversion\" -Description \"Phase-II feature specification. Goal: Convert the existing console application into a modern multi-user web application with persistent storage. Stack: Next.js 16+ \\(App Router\\), FastAPI, SQLModel, Neon Serverless PostgreSQL, Better Auth with JWT. Agents: Auth Agent, Frontend Agent, Backend Agent, DB Agent. Skills: Auth Skill, Validation Skill, Frontend Skill, Security Skill, DB Skill, API Skill. Scope: Implement all basic level features as a web application. Provide RESTful API endpoints. Build responsive frontend interface. Use authenticated multi-user flows. Enforce user-based data isolation for all data access.\")"
+    ]
+  }
+}
