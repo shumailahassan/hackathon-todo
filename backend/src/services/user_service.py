@@ -1,100 +1,59 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy.exc import SQLAlchemyError
 from typing import Optional
-from sqlalchemy.orm import Session
-from sqlalchemy import func
-from sqlalchemy.exc import IntegrityError
-from fastapi import HTTPException, status
-from ..models.user import User
-from ..core.security import get_password_hash, verify_password
-from ..core.validation import validate_email_format
+import uuid
+
+from src.models import User, UserCreate
+from src.core.security import verify_password, get_password_hash
+from src.core.database_retry import retry_database_operation
 
 
-class UserService:
-    def __init__(self, db_session: Session):
-        self.db = db_session
+@retry_database_operation(max_retries=3, base_delay=0.1)
+async def create_user(db: AsyncSession, user_in: UserCreate) -> User:
+    try:
+        hashed_password = get_password_hash(user_in.password)
+        db_user = User(email=user_in.email, password_hash=hashed_password)
+        db.add(db_user)
+        await db.commit()
+        await db.refresh(db_user)
+        return db_user
+    except SQLAlchemyError as e:
+        await db.rollback()
+        raise e
 
-    def create_user(self, email: str, password: str, first_name: Optional[str] = None, last_name: Optional[str] = None) -> User:
-        """
-        Create a new user with the provided details.
-        """
-        # Validate email format
-        is_valid, error_msg = validate_email_format(email)
-        if not is_valid:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=error_msg
-            )
 
-        # Hash the password
-        password_hash = get_password_hash(password)
-
-        # Create the user object
-        db_user = User(
-            email=email.lower().strip(),
-            password_hash=password_hash,
-            first_name=first_name,
-            last_name=last_name
-        )
-
-        try:
-            self.db.add(db_user)
-            self.db.commit()
-            self.db.refresh(db_user)
-            return db_user
-        except IntegrityError:
-            self.db.rollback()
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Email already registered"
-            )
-
-    def get_user_by_email(self, email: str) -> Optional[User]:
-        """
-        Retrieve a user by their email address.
-        """
-        return self.db.query(User).filter(User.email == email.lower().strip()).first()
-
-    def get_user_by_id(self, user_id: str) -> Optional[User]:
-        """
-        Retrieve a user by their ID.
-        """
-        return self.db.query(User).filter(User.id == user_id).first()
-
-    def authenticate_user(self, email: str, password: str) -> Optional[User]:
-        """
-        Authenticate a user by email and password.
-        """
-        user = self.get_user_by_email(email)
+@retry_database_operation(max_retries=3, base_delay=0.1)
+async def authenticate_user(db: AsyncSession, email: str, password: str) -> Optional[User]:
+    try:
+        result = await db.execute(select(User).where(User.email == email))
+        user = result.scalar_one_or_none()
         if not user or not verify_password(password, user.password_hash):
             return None
         return user
+    except SQLAlchemyError as e:
+        raise e
 
-    def update_last_login(self, user_id: str):
-        """
-        Update the last login timestamp for a user.
-        """
-        user = self.get_user_by_id(user_id)
-        if user:
-            user.last_login_at = func.now()
-            self.db.commit()
 
-    def deactivate_user(self, user_id: str) -> bool:
-        """
-        Deactivate a user account.
-        """
-        user = self.get_user_by_id(user_id)
-        if user:
-            user.is_active = False
-            self.db.commit()
-            return True
-        return False
+@retry_database_operation(max_retries=3, base_delay=0.1)
+async def get_user_by_email(db: AsyncSession, email: str) -> Optional[User]:
+    try:
+        result = await db.execute(select(User).where(User.email == email))
+        return result.scalar_one_or_none()
+    except SQLAlchemyError as e:
+        raise e
 
-    def activate_user(self, user_id: str) -> bool:
-        """
-        Activate a user account.
-        """
-        user = self.get_user_by_id(user_id)
-        if user:
-            user.is_active = True
-            self.db.commit()
-            return True
-        return False
+
+@retry_database_operation(max_retries=3, base_delay=0.1)
+async def get_user_by_id(db: AsyncSession, user_id_str: str) -> Optional[User]:
+    try:
+        # Convert string to UUID if needed
+        try:
+            user_id = uuid.UUID(user_id_str)
+        except ValueError:
+            return None
+
+        result = await db.execute(select(User).where(User.id == user_id))
+        return result.scalar_one_or_none()
+    except SQLAlchemyError as e:
+        raise e

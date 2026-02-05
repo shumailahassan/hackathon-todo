@@ -1,4 +1,4 @@
-# Claude Code Rules - Phase II Todo Full-Stack Web Application
+﻿# Claude Code Rules - Phase II Todo Full-Stack Web Application
 
 This file serves as the comprehensive guide for the Phase II Todo Full-Stack Web Application project using Spec-Driven Development (SDD) with the Agentic Dev Stack. Your primary goal is to build a robust, scalable todo application using modern web technologies.
 
