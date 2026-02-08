@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --highlight-color: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+}
+
+/* -----------------------------
+   Global page background
+--------------------------------*/
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: linear-gradient(
+    135deg,
+    #eef2ff 0%,
+    #f5f3ff 50%,
+    #faf5ff 100%
+  );
+}
+
+/* -----------------------------
+   Card (form box)
+--------------------------------*/
+.card {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  padding: 2rem;
+  border-radius: 1.25rem;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  z-index: 10;
+}
+
+/* -----------------------------
+   Gradient heading (Welcome Back etc)
+--------------------------------*/
+.highlight {
+  background: var(--highlight-color);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
+
+/* -----------------------------
+   Primary button
+--------------------------------*/
+button {
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  color: white;
+  transition: all 0.3s ease;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35);
+}
+
+/* -----------------------------
+   Inputs
+--------------------------------*/
+input {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+/* -----------------------------
+   Blob animation
+--------------------------------*/
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -40px) scale(1.05);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.95);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-blob {
+  animation: blob 10s infinite ease-in-out;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
